@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Comfy: The Crypto Tycoon</title>
+    <style>
+        /* 基础样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            color: #e0e0e0;
+            transition: background-color 0.5s ease;
+        }
+        
+        /* 开始界面样式 */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+        }
+        
+        #start-screen h1 {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #start-screen p {
+            max-width: 600px;
+            margin: 10px auto;
+            line-height: 1.6;
+        }
+        
+        #start-button {
+            margin-top: 30px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #start-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .creator-credit {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        /* 游戏主界面样式 */
+        #game-container {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .header {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(37, 37, 37, 0.8);
+            border-radius: 5px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #4CAF50;
+        }
+        
+        button:disabled {
+            background-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+        
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: rgba(37, 37, 37, 0.8);
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .profit {
+            color: #4CAF50;
+        }
+        
+        .loss {
+            color: #f44336;
+        }
+        
+        .event {
+            color: #FFC107;
+        }
+        
+        .input-area {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(37, 37, 37, 0.8);
+            border-radius: 5px;
+        }
+        
+        input {
+            padding: 8px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .action-button {
+            background-color: #4CAF50;
+            padding: 8px 15px;
+        }
+        
+        .action-button:hover {
+            background-color: #45a049;
+        }
+        
+        /* 结果界面样式 */
+        #result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 200;
+        }
+        
+        #result-image {
+            max-width: 80%;
+            max-height: 60vh;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #result-content {
+            background-color: rgba(37, 37, 37, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        #continue-button {
+            margin-top: 20px;
+            padding: 10px 25px;
+            font-size: 1rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #continue-button:hover {
+            background-color: #45a049;
+        }
+        
+        /* 背景图片样式 */
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景图片 -->
+    <img id="main-bg" class="background-image" src="https://fhevm-explorers.notion.site/image/attachment%3A10613cac-db23-440b-851e-0cb898622f6b%3Apoker.jpg?table=block&id=21714646-5d40-803f-b856-eba22b6005f5&spaceId=2402153e-4f34-4a63-b2c2-c14599ae2bc8&width=1420&userId=&cache=v2" alt="Background">
+    
+    <!-- 开始界面 -->
+    <div id="start-screen">
+        <h1>COMFY: THE CRYPTO TYCOON</h1>
+        <p>Welcome to the wild world of crypto investing! As Comfy, you'll start with $100 and try to build your fortune through various crypto investments.</p>
+        <p>Choose wisely between spot trading, futures, DeFi, meme coins and more. Each investment has different risk/reward ratios.</p>
+        <p>Will you become a crypto whale or get rekt? The choice is yours!</p>
+        <button id="start-button">Start Investing</button>
+        <div class="creator-credit">made by @LilDegen</div>
+    </div>
+    
+    <!-- 游戏主界面 -->
+    <div id="game-container">
+        <div class="header">
+            <h1>COMFY: THE CRYPTO TYCOON</h1>
+            <p>Make your fortune in the wild world of crypto!</p>
+        </div>
+        
+        <div class="status">
+            <div>Day: <span id="day">1</span></div>
+            <div>Balance: $<span id="balance">100.00</span></div>
+            <div>Net Worth: $<span id="net-worth">100.00</span></div>
+        </div>
+        
+        <h3>Choose your investment:</h3>
+        <div class="options" id="options">
+            <!-- Options will be added by JavaScript -->
+        </div>
+        
+        <div class="input-area" id="input-area" style="display: none;">
+            <p>You selected: <strong id="selected-investment"></strong></p>
+            <p id="min-amount-info"></p>
+            <input type="number" id="investment-amount" placeholder="Enter amount">
+            <button class="action-button" id="confirm-button">Confirm Investment</button>
+            <button id="cancel-button">Cancel</button>
+        </div>
+        
+        <div class="log" id="log">
+            <p>Welcome to the crypto world, Comfy! You start with $100. Will you become a crypto whale or get rekt?</p>
+        </div>
+    </div>
+    
+    <!-- 结果界面 -->
+    <div id="result-screen">
+        <img id="result-image" src="" alt="Result">
+        <div id="result-content">
+            <h2 id="result-title"></h2>
+            <p id="result-scenario"></p>
+            <p id="result-outcome"></p>
+            <button id="continue-button">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const state = {
+            day: 1,
+            balance: 100,
+            netWorth: 100,
+            investmentHistory: [],
+            currentSelection: null
+        };
+
+        // 背景图片
+        const backgrounds = {
+            profit: 'https://fhevm-explorers.notion.site/image/attachment%3Acf6f491d-92d0-4f1c-84bb-b0866a1131ad%3Apc.png?table=block&id=21714646-5d40-80b3-9c3d-e93c48c4b70b&spaceId=2402153e-4f34-4a63-b2c2-c14599ae2bc8&width=1420&userId=&cache=v2',   // 盈利背景
+            loss: 'https://fhevm-explorers.notion.site/image/attachment%3Ab4ae8a59-9afb-4050-aeda-673ac2e91dba%3Aphoto_2025-05-26_20-17-33.jpg?table=block&id=1ff14646-5d40-80fb-8b15-cd72b183bf36&spaceId=2402153e-4f34-4a63-b2c2-c14599ae2bc8&width=1420&userId=&cache=v2'      // 亏损背景
+        };
+
+        // 投资选项 - 更新了更详细的场景描述
+        const investments = [
+            { 
+                id: 1,
+                name: "Spot Trading (Long-term)", 
+                description: "Buy and hold blue-chip coins",
+                risk: 2, 
+                reward: 3,
+                minAmount: 10,
+                successScenarios: [
+                    "After months of patiently holding through market volatility, your Bitcoin investment finally pays off when institutional adoption news sends the price soaring. You sell at the peak, pocketing a tidy profit.",
+                    "Your Ethereum stake through the merge proves to be a masterstroke. As the network transitions to Proof-of-Stake, your validator rewards accumulate steadily while the ETH price appreciates significantly.",
+                    "Despite the bear market chatter, you continue DCA'ing into Solana. When the next bull run hits, SOL rallies strongly from your average buy price, making you one of the few profitable traders."
+                ],
+                failureScenarios: [
+                    "You buy Bitcoin at what seems like a local bottom, only to watch helplessly as a major exchange collapse triggers a flash crash overnight. Your stop-loss gets skipped in the liquidity vacuum.",
+                    "Just as you load up on Ethereum ahead of the merge, regulatory uncertainty hits. The SEC declares ETH a security, causing a significant price drop before you can exit your position.",
+                    "Your Solana investment turns sour when network outages become frequent. As developers migrate to competitors, SOL price tanks over several months despite your 'long-term hold' strategy."
+                ]
+            },
+            { 
+                id: 2,
+                name: "Futures Trading", 
+                description: "High leverage, high risk",
+                risk: 8, 
+                reward: 10,
+                minAmount: 0,
+                successScenarios: [
+                    "Against all warnings, you open a high-leverage long on PEPE during a quiet period. By morning, an Elon tweet mentioning frogs sends the meme coin parabolic - your small position becomes a windfall.",
+                    "You catch the perfect short entry on BTC after spotting a classic head-and-shoulders pattern. The leverage amplifies your gains as Bitcoin drops sharply in a short period.",
+                    "After getting liquidated several times in a row, your revenge trade finally hits. A well-timed leveraged position on ETH during a flash crash rebounds violently, turning your small stake into a substantial gain."
+                ],
+                failureScenarios: [
+                    "Your high-leverage PEPE long gets wrecked when a whale dumps a large position just minutes after your entry. The small price dip is enough to wipe out your entire position instantly.",
+                    "The BTC short seems perfect until unexpected positive news drops. The sudden green candle liquidates your leveraged position before you can even react.",
+                    "Convinced of an impending dump, you go all-in short with extreme leverage. The market chops sideways for hours before funding fees eat away your entire margin balance."
+                ]
+            },
+            { 
+                id: 3,
+                name: "DeFi Yield Farming", 
+                description: "Earn APY on obscure protocols",
+                risk: 5, 
+                reward: 6,
+                minAmount: 20,
+                successScenarios: [
+                    "The new DEX you provided liquidity to unexpectedly gets listed on a major exchange. Trading volume explodes overnight, and your LP position earns substantial fees in a short time.",
+                    "Despite initial skepticism, the questionable fork you staked in turns out to be legit. The team delivers on roadmap promises, and your early investment grows significantly.",
+                    "You narrowly avoid a hack by withdrawing from a vulnerable protocol just in time. The team compensates all unaffected LPs with a generous token airdrop worth multiples of your original stake."
+                ],
+                failureScenarios: [
+                    "The 'audited' DeFi protocol you deposited into turns out to have a backdoor. One morning you check your wallet to find your entire balance drained by an exit scam.",
+                    "Your LP tokens get permanently stuck when the DEX gets hacked. The team abandons the project, leaving you with worthless tokens and a near-total loss on your investment.",
+                    "You fail to claim your yield farming rewards for a while, only to discover the token has depreciated massively in that time due to hyperinflationary emissions."
+                ]
+            },
+            { 
+                id: 4,
+                name: "Meme Coin Trading", 
+                description: "Buy the hype, sell the news",
+                risk: 7, 
+                reward: 15,
+                minAmount: 5,
+                successScenarios: [
+                    "On a whim, you invest in a new dog-themed coin. Soon after, a viral TikTok trend sends it parabolic. You sell at the top, turning your modest investment into a substantial windfall.",
+                    "You catch the early wave of a meme coin promoted by a famous influencer. Riding the hype train, you exit with massive gains just before the inevitable dump begins.",
+                    "Against all logic, you hold a joke token through severe drawdowns. Later, it gets listed on a major exchange and you cash out with surprising returns, baffling all the 'serious' traders."
+                ],
+                failureScenarios: [
+                    "The dog coin you bought 'early' turns out to be a honeypot. When you try to sell, the contract blocks your transaction while the devs rug pull the remaining liquidity.",
+                    "You FOMO into a meme coin at its peak after seeing hype posts on Twitter. The next day, the influencer promoting it dumps their entire bag, crashing the price dramatically.",
+                    "Your 'sure thing' meme coin gets delisted after the team gets arrested for securities fraud. The community dissolves overnight, leaving you holding worthless bags."
+                ]
+            },
+            { 
+                id: 5,
+                name: "GameFi", 
+                description: "Play-to-earn blockchain games",
+                risk: 4, 
+                reward: 5,
+                minAmount: 15,
+                successScenarios: [
+                    "Your early investment in blockchain game creatures pays off when the game goes viral. Breeding and selling rare assets nets you a substantial return over time.",
+                    "You grind a new RPG daily, accumulating tokens most players ignore. When the game launches on mainstream platforms, your hoarded stash becomes surprisingly valuable.",
+                    "Recognizing the unsustainable economy early, you cash out your GameFi tokens at the perfect time - just before the inevitable death spiral wipes out most players' value."
+                ],
+                failureScenarios: [
+                    "The amount you spent on in-game assets becomes worthless when the game's token crashes. Your 'assets' now can't even cover the gas fees to transfer them.",
+                    "After months of daily grinding, the game developers suddenly change tokenomics. Your hard-earned tokens are now worth a fraction of their previous value overnight.",
+                    "The blockchain game you invested in gets abandoned when the studio runs out of funding. Your NFTs now sit in your wallet as permanent reminders of sunk cost fallacy."
+                ]
+            },
+            { 
+                id: 6,
+                name: "Airdrop Farming", 
+                description: "Grind for potential free money",
+                risk: 3, 
+                reward: 20,
+                minAmount: 5,
+                successScenarios: [
+                    "Your months of interacting with that obscure protocol finally pays off - they airdrop valuable tokens to early users! You sell some immediately and let the rest ride.",
+                    "What seemed like pointless testnet transactions turns into a golden ticket when the project rewards early participants with valuable governance tokens.",
+                    "You qualify for an unexpected retroactive airdrop from a protocol you used long ago. The windfall arrives just as you're about to give up on crypto."
+                ],
+                failureScenarios: [
+                    "After spending considerable gas fees across hundreds of transactions, the project announces their airdrop excludes 'sybil attackers' - which apparently includes you.",
+                    "The tokens you received from the airdrop are locked for years. By the time they vest, the project has collapsed and they're worthless.",
+                    "You obsessively farm every new protocol, only to realize too late that none will ever be as lucrative as the legendary early airdrops. Your wallet is full of worthless tokens."
+                ]
+            },
+            { 
+                id: 7,
+                name: "IDO Participation", 
+                description: "Get in on new projects early",
+                risk: 6, 
+                reward: 8,
+                minAmount: 25,
+                successScenarios: [
+                    "You win a whitelist spot for a hyped launch through relentless community participation. The IDO price is low compared to the exchange listing price, giving you instant gains.",
+                    "Your staked tokens qualify you for a tiered sale allocation. The project delivers on its promises, and your early investment grows steadily over time.",
+                    "Against prevailing sentiment, you hold through the initial post-IDO dump. The project turns out to be legit, and your patience is rewarded with significant gains when they announce major partnerships."
+                ],
+                failureScenarios: [
+                    "The IDO you waited weeks to participate in turns out to be a scam. The tokens are worthless upon launch, and the team disappears with all funds.",
+                    "You get allocated tokens at IDO price, only to watch helplessly as insiders dump on retail at much higher prices than you paid.",
+                    "The project launches to immediate technical issues. By the time they're resolved, the hype is gone and your tokens have lost most of their value."
+                ]
+            },
+            { 
+                id: 8,
+                name: "NFT Flipping", 
+                description: "Buy low, sell lower (or higher)",
+                risk: 9, 
+                reward: 12,
+                minAmount: 30,
+                successScenarios: [
+                    "You mint a hyped PFP project and flip it soon after when rarity tools reveal you got a top-tier trait combination, netting a significant multiple of your mint price.",
+                    "Your keen eye spots undervalued NFTs on secondary markets. Buying several at low prices, you sell them weeks later for much more as the collection gains traction.",
+                    "Against all advice, you hold your JPEGs through the bear market. When the next bull run hits, your 'worthless' NFTs suddenly become status symbols selling for multiples of your cost basis."
+                ],
+                failureScenarios: [
+                    "The gas war for the hyped mint costs you considerable ETH in failed transactions. When you finally succeed, the floor price is already below mint cost and keeps dropping.",
+                    "You ape into an 'undervalued' collection that turns out to be wash traded. The moment you buy, liquidity disappears and you're left holding illiquid JPEGs.",
+                    "Your prized NFT gets flagged by marketplaces for questionable content. Without warning, your 'investment' becomes unsellable on the primary platforms."
+                ]
+            }
+        ];
+
+        // 游戏元素
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container');
+        const dayElement = document.getElementById('day');
+        const balanceElement = document.getElementById('balance');
+        const netWorthElement = document.getElementById('net-worth');
+        const optionsElement = document.getElementById('options');
+        const logElement = document.getElementById('log');
+        const inputArea = document.getElementById('input-area');
+        const selectedInvestmentElement = document.getElementById('selected-investment');
+        const minAmountInfoElement = document.getElementById('min-amount-info');
+        const investmentAmountInput = document.getElementById('investment-amount');
+        const confirmButton = document.getElementById('confirm-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const resultScreen = document.getElementById('result-screen');
+        const resultImage = document.getElementById('result-image');
+        const resultTitle = document.getElementById('result-title');
+        const resultScenario = document.getElementById('result-scenario');
+        const resultOutcome = document.getElementById('result-outcome');
+        const continueButton = document.getElementById('continue-button');
+        const mainBg = document.getElementById('main-bg');
+
+        // 初始化游戏
+        function init() {
+            // 设置事件监听器
+            startButton.addEventListener('click', startGame);
+            confirmButton.addEventListener('click', confirmInvestment);
+            cancelButton.addEventListener('click', cancelInvestment);
+            continueButton.addEventListener('click', continueGame);
+        }
+
+        // 开始游戏
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            updateUI();
+            renderOptions();
+        }
+
+        // 更新UI
+        function updateUI() {
+            dayElement.textContent = state.day;
+            balanceElement.textContent = state.balance.toFixed(2);
+            netWorthElement.textContent = state.netWorth.toFixed(2);
+        }
+
+        // 渲染投资选项
+        function renderOptions() {
+            optionsElement.innerHTML = '';
+            
+            investments.forEach((investment) => {
+                const button = document.createElement('button');
+                button.innerHTML = `<strong>${investment.name}</strong><br>${investment.description}<br>Min: $${investment.minAmount > 0 ? investment.minAmount : "Any"}`;
+                button.dataset.id = investment.id;
+                
+                // 如果余额不足则禁用按钮(期货交易除外)
+                if (investment.minAmount > 0 && state.balance < investment.minAmount) {
+                    button.disabled = true;
+                }
+                
+                button.addEventListener('click', () => {
+                    selectInvestment(investment.id);
+                });
+                
+                optionsElement.appendChild(button);
+            });
+        }
+
+        // 选择投资
+        function selectInvestment(investmentId) {
+            const investment = investments.find(i => i.id === investmentId);
+            state.currentSelection = investment;
+            
+            // 显示输入区域
+            selectedInvestmentElement.textContent = investment.name;
+            
+            if (investment.minAmount > 0) {
+                minAmountInfoElement.textContent = `Minimum investment: $${investment.minAmount}`;
+                investmentAmountInput.min = investment.minAmount;
+                investmentAmountInput.placeholder = `Enter at least $${investment.minAmount}`;
+            } else {
+                minAmountInfoElement.textContent = "No minimum investment required";
+                investmentAmountInput.min = 0;
+                investmentAmountInput.placeholder = "Enter any amount";
+            }
+            
+            investmentAmountInput.value = "";
+            inputArea.style.display = "block";
+            optionsElement.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
+
+        // 取消投资选择
+        function cancelInvestment() {
+            state.currentSelection = null;
+            inputArea.style.display = "none";
+            optionsElement.querySelectorAll('button').forEach(btn => {
+                const investment = investments.find(i => i.name === btn.querySelector('strong').textContent);
+                if (investment.minAmount <= state.balance || investment.minAmount === 0) {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // 确认投资
+        function confirmInvestment() {
+            const amount = parseFloat(investmentAmountInput.value);
+            const investment = state.currentSelection;
+            
+            if (isNaN(amount)) {
+                addToLog("Please enter a valid number.", "event");
+                return;
+            }
+            
+            if (investment.minAmount > 0 && amount < investment.minAmount) {
+                addToLog(`Minimum investment for ${investment.name} is $${investment.minAmount}.`, "event");
+                return;
+            }
+            
+            if (amount > state.balance) {
+                addToLog("You don't have enough funds for this investment.", "event");
+                return;
+            }
+            
+            if (amount <= 0) {
+                addToLog("Investment amount must be positive.", "event");
+                return;
+            }
+            
+            processInvestment(investment, amount);
+            inputArea.style.display = "none";
+        }
+
+        // 处理投资
+        function processInvestment(investment, amount) {
+            // 计算结果(50%成功几率)
+            const isSuccess = Math.random() > 0.5;
+            const riskFactor = investment.risk * (0.8 + Math.random() * 0.4);
+            const rewardFactor = investment.reward * (0.8 + Math.random() * 0.4);
+            
+            let scenario, outcome;
+            
+            if (isSuccess) {
+                const profit = amount * (rewardFactor / 10);
+                state.balance += profit;
+                state.netWorth += profit;
+                
+                // 随机选择成功场景
+                scenario = investment.successScenarios[Math.floor(Math.random() * investment.successScenarios.length)];
+                outcome = `You made a profit of $${profit.toFixed(2)}!`;
+                
+                // 显示盈利结果界面
+                showResultScreen(
+                    backgrounds.profit,
+                    "INVESTMENT SUCCESS!",
+                    scenario,
+                    outcome
+                );
+                
+                addToLog(`Day ${state.day}: Invested $${amount.toFixed(2)} in ${investment.name} - Profit $${profit.toFixed(2)}`, "profit");
+            } else {
+                const loss = amount * (riskFactor / 10);
+                state.balance -= loss;
+                state.netWorth -= loss;
+                
+                // 随机选择失败场景
+                scenario = investment.failureScenarios[Math.floor(Math.random() * investment.failureScenarios.length)];
+                outcome = `You lost $${loss.toFixed(2)}...`;
+                
+                // 显示亏损结果界面
+                showResultScreen(
+                    backgrounds.loss,
+                    "INVESTMENT FAILURE!",
+                    scenario,
+                    outcome
+                );
+                
+                addToLog(`Day ${state.day}: Invested $${amount.toFixed(2)} in ${investment.name} - Lost $${loss.toFixed(2)}`, "loss");
+            }
+            
+            // 随机市场事件(10%几率)
+            if (Math.random() < 0.1) {
+                triggerMarketEvent();
+            }
+            
+            // 随机NFT空投(5%几率)
+            if (Math.random() < 0.05) {
+                triggerNFTAirdrop();
+            }
+            
+            state.day++;
+            state.investmentHistory.push({
+                day: state.day,
+                investment: investment.name,
+                amount: amount,
+                profit: isSuccess ? amount * (rewardFactor / 10) : -amount * (riskFactor / 10)
+            });
+            
+            // 检查游戏结束
+            if (state.balance <= 0) {
+                setTimeout(() => {
+                    addToLog(`GAME OVER! Comfy got rekt after ${state.day} days.`, "loss");
+                    addToLog(`Your final net worth was $${state.netWorth.toFixed(2)}.`, "event");
+                    optionsElement.querySelectorAll('button').forEach(btn => btn.disabled = true);
+                }, 1000);
+            }
+        }
+
+        // 显示结果界面
+        function showResultScreen(imageSrc, title, scenario, outcome) {
+            resultImage.src = imageSrc;
+            resultTitle.textContent = title;
+            resultScenario.textContent = scenario;
+            resultOutcome.textContent = outcome;
+            
+            if (title.includes("SUCCESS")) {
+                resultTitle.className = "profit";
+                resultOutcome.className = "profit";
+            } else {
+                resultTitle.className = "loss";
+                resultOutcome.className = "loss";
+            }
+            
+            gameContainer.style.display = 'none';
+            resultScreen.style.display = 'flex';
+        }
+
+        // 继续游戏
+        function continueGame() {
+            resultScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            updateUI();
+            renderOptions();
+        }
+
+        // 触发市场事件
+        function triggerMarketEvent() {
+            const marketEvents = [
+                "Bitcoin suddenly pumps 10%!",
+                "A major exchange gets hacked!",
+                "Regulators announce a crackdown!",
+                "Vitalik tweets something cryptic!",
+                "A new meme coin goes viral!",
+                "The Fed raises interest rates!",
+                "A whale dumps their entire bag!"
+            ];
+            
+            const marketEvent = marketEvents[Math.floor(Math.random() * marketEvents.length)];
+            const marketEffect = (Math.random() - 0.5) * 0.2;
+            const effectAmount = state.netWorth * marketEffect;
+            
+            state.netWorth += effectAmount;
+            
+            addToLog(`MARKET EVENT: ${marketEvent}`, "event");
+            if (effectAmount >= 0) {
+                addToLog(`Your portfolio gained $${Math.abs(effectAmount).toFixed(2)} from market movement.`, "profit");
+            } else {
+                addToLog(`Your portfolio lost $${Math.abs(effectAmount).toFixed(2)} from market movement.`, "loss");
+            }
+        }
+
+        // 触发NFT空投
+        function triggerNFTAirdrop() {
+            const nftValue = 5 + Math.random() * 45;
+            state.balance += nftValue;
+            state.netWorth += nftValue;
+            addToLog(`FREE MONEY! You received an NFT airdrop worth $${nftValue.toFixed(2)}!`, "profit");
+        }
+
+        // 添加日志消息
+        function addToLog(message, type) {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = message;
+            logElement.appendChild(p);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // 初始化游戏
+        init();
+    </script>
+</body>
+</html>
